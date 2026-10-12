@@ -1,0 +1,22 @@
+name: deepcell-pipeline
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - cudatoolkit=11.8
+  - cudnn=8.6.0
+  - tifffile
+  - scikit-image
+  - scikit-learn
+  - pandas
+  - scipy
+  - pyyaml
+  - matplotlib
+  - pip:
+      - tensorflow==2.10.0
+      - deepcell>=0.12.0
+      - fastapi
+      - uvicorn
+      - python-multipart

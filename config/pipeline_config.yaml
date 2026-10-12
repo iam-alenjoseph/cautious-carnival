@@ -1,0 +1,63 @@
+# ==============================================================================
+# Deep Learning Cell Segmentation & Spatial Biology Pipeline Configuration
+# ==============================================================================
+
+# Hardware and GPU Settings
+hardware:
+  gpu_id: 0                    # GPU device ID to use (0 for first GPU)
+  allow_growth: true           # Enable TensorFlow dynamic GPU memory growth
+  memory_limit_mb: null        # Max GPU VRAM to allocate (e.g. 5120 for 5GB), null = dynamic
+  mixed_precision: false       # Enable fp16 mixed precision if supported
+
+# Bioimaging & Input Data Specifications
+imaging:
+  nuclear_channel_index: 0     # 0-indexed position of nuclear channel (e.g., DAPI, Hoechst)
+  membrane_channel_index: 1    # 0-indexed position of membrane/cytoplasm channel (e.g., PanCK, CD45, NaKATPase)
+  microns_per_pixel: 0.5       # Image resolution in microns per pixel (Mesmer default target ~0.5 um/px)
+  tile_size: 1024              # Patch/tile size in pixels (e.g., 512, 1024, or 2048)
+  tile_overlap: 64             # Overlap between tiles in pixels to mitigate edge artifacts
+
+# DeepCell Model Inference Configuration
+inference:
+  model_type: "mesmer"         # Options: "mesmer", "nuclear", "cytoplasm"
+  compartment: "both"          # Options: "both" (nuclear + whole cell), "nuclear", "whole-cell"
+  batch_size: 2                # Adjust based on GPU VRAM (e.g. 2-4 for 6GB VRAM, 8-16 for 24GB VRAM)
+  postprocess_kwargs:
+    maxima_threshold: 0.075
+    interior_threshold: 0.2
+    small_objects_threshold: 15
+
+# WSI Boundary Deduplication & Spatial Non-Maximum Suppression (NMS)
+stitching:
+  enabled: true
+  nms_distance_threshold_um: 4.0  # Cells within 4 microns across adjacent tiles are merged
+
+# Single-Cell Feature Extraction & Quantification
+features:
+  extract_morphology: true     # Area, perimeter, eccentricity, major/minor axis lengths
+  extract_intensities: true    # Mean, median, std, min, max marker intensity per cell
+  markers:                     # Marker names matching multiplexed panel channels
+    - "DAPI"
+    - "PanCK"
+    - "CD45"
+    - "Ki67"
+
+# Spatial Biology & Cellular Microenvironment Analysis
+spatial:
+  enabled: true
+  k_neighbors: 20              # k-nearest neighbors for local microenvironment graph
+  radius_um: 50.0              # Microns radius for cellular density quantification
+  n_neighborhood_clusters: 5   # Number of distinct Cellular Neighborhood (CN) motifs
+
+# Quality Control & Interactive Reporting
+reporting:
+  generate_dashboard: true     # Generates interactive HTML spatial QC dashboard
+  dashboard_filename: "spatial_qc_report.html"
+
+# CytoMap Spatial Analysis Export
+cytomap:
+  output_format: "csv"         # Options: "csv", "tsv"
+  x_coord_col: "XPos"          # X centroid column name expected by CytoMap
+  y_coord_col: "YPos"          # Y centroid column name expected by CytoMap
+  z_coord_col: "ZPos"          # Z coordinate (default 0 for 2D images)
+  cell_id_col: "CellID"        # Unique cell identifier
