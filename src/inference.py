@@ -48,11 +48,11 @@ class DeepCellSegmentationPipeline:
             from deepcell.applications import Mesmer
             self.model = Mesmer()
             logger.info("DeepCell Mesmer model loaded successfully.")
-        except ImportError:
+        except Exception as e:
             logger.warning(
-                "DeepCell is not installed in this environment. "
-                "Running in fallback/simulated mode. To enable DL inference, "
-                "install deepcell via: pip install deepcell"
+                f"DeepCell Mesmer model could not be loaded ({e}). "
+                "Running in fallback/simulated watershed mode. To enable DL inference, "
+                "ensure deepcell and weights are available."
             )
             self.model = None
 

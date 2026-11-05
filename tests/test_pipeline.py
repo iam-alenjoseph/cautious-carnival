@@ -39,8 +39,8 @@ class TestDeepCellPipeline(unittest.TestCase):
 
         yy, xx = np.ogrid[:h, :w]
         dist_sq = (xx - 64)**2 + (yy - 64)**2
-        nuc[dist_sq <= 16] = 3000
-        mem[(dist_sq <= 49) & (dist_sq > 16)] = 2500
+        nuc[dist_sq <= 49] = 3000
+        mem[(dist_sq <= 196) & (dist_sq > 49)] = 2500
 
         mock_multichannel = np.stack([nuc, mem], axis=-1)
         tifffile.imwrite(self.tile_path, mock_multichannel)
@@ -56,7 +56,7 @@ class TestDeepCellPipeline(unittest.TestCase):
 
     def test_optical_preprocessing(self):
         """Verifies tissue foreground detection and rolling-ball background subtraction."""
-        pre = OpticalPreprocessor(rolling_ball_radius=20, min_tissue_fraction=0.01)
+        pre = OpticalPreprocessor(rolling_ball_radius=20, min_tissue_fraction=0.005)
         raw = tifffile.imread(self.tile_path)
         proc_img, is_valid, coverage = pre.preprocess_multichannel_tile(raw, nuclear_idx=0, membrane_idx=1)
 

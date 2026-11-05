@@ -66,9 +66,10 @@ class OpticalPreprocessor:
             thresh = structural_composite.mean() + 0.5 * structural_composite.std()
             tissue_mask = structural_composite > thresh
 
-        # Clean morphological artifacts
-        tissue_mask = remove_small_holes(tissue_mask, area_threshold=500)
-        tissue_mask = remove_small_objects(tissue_mask, min_size=500)
+        # Clean morphological artifacts adaptive to tile dimensions
+        clean_size = max(10, min(500, int(0.005 * structural_composite.size)))
+        tissue_mask = remove_small_holes(tissue_mask, area_threshold=clean_size)
+        tissue_mask = remove_small_objects(tissue_mask, min_size=clean_size)
 
         coverage = float(np.mean(tissue_mask))
         return tissue_mask, coverage
