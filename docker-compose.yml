@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  deepcell-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: deepcell-platform:latest
+    container_name: deepcell-spatial-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - TF_FORCE_GPU_ALLOW_GROWTH=true
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+

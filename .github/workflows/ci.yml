@@ -1,0 +1,57 @@
+name: DeepCell CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    name: Unit & Integration Tests (Python 3.10)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1 libglib2.0-0
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install fastapi uvicorn python-multipart flake8 pytest
+
+      - name: Code Quality & Linting
+        run: |
+          # Stop build if syntax errors or undefined names exist
+          flake8 src/ run_pipeline.py api/ cli.py --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Warning level checks
+          flake8 src/ run_pipeline.py --count --exit-zero --max-complexity=15 --max-line-length=120 --statistics
+
+      - name: Run Test Suite
+        run: |
+          python -m unittest discover -s tests -p "test_*.py" -v
+
+      - name: Execute End-to-End Synthetic Pipeline Integration Run
+        run: |
+          python cli.py synthetic
+          python cli.py run --input-dir data/tiles_export --output-dir data/ci_output --sample-name CI_Test_Sample --arcsinh
+
+      - name: Upload Spatial QC Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spatial-qc-report
+          path: data/ci_output/spatial_qc_report.html
+          if-no-files-found: error
+
